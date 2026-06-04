@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments (Platform-specific, should be built locally)
+venv/
+.venv/
+env/
+ENV/
+
+# Python caches and tests
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Local LLM Models (Huge binary files, over GitHub's 100MB limit)
+models/
+*.gguf
+
+# Local Agent history & context metadata
+.qwen-context.md
+.qwen_cli_history
+last_session.json

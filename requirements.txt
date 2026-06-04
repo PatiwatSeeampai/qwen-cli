@@ -1,0 +1,18 @@
+# Qwen Code CLI v2.0 — Dependencies
+
+# Core AI / Agent
+langchain>=0.2.0
+langchain-openai>=0.1.0
+langgraph>=0.1.0
+
+# Terminal UI
+rich>=13.0.0
+
+# Smart Input (history, autocomplete)
+prompt_toolkit>=3.0.0
+
+# Git Integration
+gitpython>=3.1.0
+
+# File Watching (optional — สำหรับ watchdog feature ในอนาคต)
+watchdog>=4.0.0
