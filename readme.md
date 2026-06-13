@@ -1,41 +1,41 @@
 # 🤖 Qwen Code CLI v2.0 — Claude Code Style
 
-> Local AI Coding Agent ที่รันบนเครื่องตัวเอง พร้อม UI และฟีเจอร์ครบเหมือน Claude Code
+> Local AI Coding Agent running 100% locally on your machine with Rich UI and full features matching Claude Code.
 
 ---
 
-## ✨ Features ใหม่ทั้งหมด
+## ✨ Features
 
-| Feature | รายละเอียด |
+| Feature | Description |
 |---|---|
-| **Rich Terminal UI** | Syntax highlighting, Panel, Tree, Table สวยงาม |
-| **Smart Input** | History ข้ามเซสชัน + Autocomplete จาก `prompt_toolkit` |
-| **Patch Mode** | แก้ไขเฉพาะ block ที่ระบุ (`patch_file`) แทน overwrite ทั้งไฟล์ |
-| **Git Integration** | `git_operations` tool ครบ: status, diff, commit, push, pull |
-| **Approval Gate** | คำสั่งอันตราย (`rm`, `sudo`, `chmod`...) ต้องยืนยันก่อนรันเสมอ |
-| **Session Save/Load** | บันทึก/โหลด conversation ได้ข้ามเซสชัน |
-| **Auto-save** | บันทึก session อัตโนมัติทุกครั้งที่ออกจากโปรแกรม |
-| **Compact** | สรุปและล้าง history เพื่อประหยัด context window |
-| **Context Trimming** | ตัด history เก่าอัตโนมัติ ป้องกัน overflow |
-| **File Tools ครบ** | list, search, delete, move/rename, read, write, patch |
-| **Slash Commands** | `/help /save /load /compact /clear /status /tree /cd /history` |
+| **Rich Terminal UI** | Beautiful Syntax highlighting, Panels, Trees, and Tables |
+| **Smart Input** | Multi-session persistent command history + autocomplete powered by `prompt_toolkit` |
+| **Patch Mode** | Surgical block editing (`patch_file`) instead of overwriting entire files |
+| **Git Integration** | Comprehensive Git tools: status, diff, commit, push, pull |
+| **Approval Gate** | Prompts for confirmation before executing dangerous commands (`rm`, `sudo`, `chmod`...) |
+| **Session Save/Load** | Save and resume chat conversations across sessions |
+| **Auto-save** | Automatically saves session states upon exiting the program |
+| **Compact** | Summarizes and clears older history to optimize context window utilization |
+| **Context Trimming** | Automatically trims history prefix to prevent context overflow |
+| **File Tools** | Full set of file tools: list, search, delete, move/rename, read, write, and patch |
+| **Slash Commands** | `/help /save /load /compact /clear /status /tree /cd /history` and more |
 
 ---
 
-## 🚀 ติดตั้งและรัน
+## 🚀 Installation & Running
 
-### 1. ติดตั้ง Dependencies
+### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. เริ่ม Local LLM Server (llama.cpp หรือ LM Studio)
+### 2. Start Local LLM Server (llama.cpp or LM Studio)
 ```bash
-# ตัวอย่างด้วย llama-server
+# Example using llama-server
 llama-server -m qwen2.5-7b-instruct-q4_k_m.gguf --port 8080
 ```
 
-### 3. รัน CLI
+### 3. Run CLI
 ```bash
 python qwen_cli.py
 ```
@@ -45,51 +45,51 @@ python qwen_cli.py
 ## 📖 Slash Commands
 
 ```
-/help              แสดงคำสั่งทั้งหมด
-/save [name]       บันทึก session ปัจจุบัน
-/load <name>       โหลด session ที่บันทึกไว้
-/sessions          แสดง sessions ทั้งหมด
-/compact           สรุปและล้าง history (ประหยัด context)
-/clear             ล้าง history ทั้งหมด เริ่มใหม่
-/status            แสดง git status
-/tree [path]       แสดงโครงสร้างไดเรกทอรี
-/cd <path>         เปลี่ยน working directory
-/pwd               แสดง working directory ปัจจุบัน
-/history           แสดง message history ทั้งหมด
-/exit              ออกจากโปรแกรม (auto-save)
+/help              Display all commands and help guide
+/save [name]       Save current session state
+/load <name>       Load a saved session
+/sessions          List all saved sessions
+/compact           Summarize and clean up conversation history (save context)
+/clear             Clear all chat history and start fresh
+/status            Display git status
+/tree [path]       Display directory structure as a tree
+/cd <path>         Change the current working directory
+/pwd               Display the current working directory path
+/history           Display full message history
+/exit              Exit the application (auto-saves session)
 ```
 
 ---
 
-## 🛠️ Tools ที่ Agent ใช้ได้
+## 🛠️ Agent Tools
 
-| Tool | หน้าที่ |
+| Tool | Purpose |
 |---|---|
-| `execute_bash_command` | รัน bash command (มี approval สำหรับคำสั่งอันตราย) |
-| `view_and_read_file` | อ่านไฟล์ + แสดง syntax highlight |
-| `write_or_edit_file` | เขียน/overwrite ไฟล์ทั้งหมด |
-| `patch_file` | แก้ไขเฉพาะ block ที่ระบุ (surgical edit) |
-| `list_directory` | แสดงโครงสร้างไฟล์แบบ tree |
-| `search_in_files` | ค้นหา pattern ใน codebase |
-| `delete_file` | ลบไฟล์/โฟลเดอร์ (ต้อง confirm) |
-| `move_or_rename_file` | ย้ายหรือเปลี่ยนชื่อไฟล์ |
-| `git_operations` | Git: status/diff/log/add/commit/push/pull |
+| `execute_bash_command` | Execute bash commands (includes confirmation gate for dangerous commands) |
+| `view_and_read_file` | Read files with line-range selection and syntax highlighting |
+| `write_or_edit_file` | Write or overwrite entire file content |
+| `patch_file` | Edit specific parts of a file (surgical edit) |
+| `list_directory` | Display folder structure in tree view |
+| `search_in_files` | Search for regex/text patterns inside codebase |
+| `delete_file` | Delete files/directories (requires confirmation) |
+| `move_or_rename_file` | Move or rename files |
+| `git_operations` | Perform Git operations (status, diff, log, commit, push, pull) |
 
 ---
 
-## 🗂️ Files ที่สร้าง
+## 🗂️ Created Directories & Files
 
 ```
 ~/.qwen_cli/
-├── sessions/          ← session files (.json)
-└── input_history      ← prompt_toolkit input history
+├── sessions/          ← Saved session files (.json)
+└── input_history      ← prompt_toolkit command history
 ```
 
 ---
 
 ## 💡 Tips
 
-- ใช้ **`/compact`** เมื่อ session ยาวมากและ Agent เริ่มตอบช้าหรือหลงประเด็น
-- ใช้ **`patch_file`** แทน `write_or_edit_file` เมื่อแก้ไขแค่บางส่วน ปลอดภัยกว่ามาก
-- กด **↑/↓** เพื่อดู input history ของเซสชันก่อนหน้า
-- **Auto-save** ทำงานทุกครั้งที่กด `/exit` หรือ Ctrl+C
+- Use **`/compact`** when your session runs long and the Agent starts responding slowly or losing focus.
+- Use **`patch_file`** instead of `write_or_edit_file` when editing specific segments of a file. It is much faster and safer.
+- Press **↑/↓** arrows in the prompt to navigate your command history across sessions.
+- **Auto-save** executes automatically whenever you exit with `/exit` or hit `Ctrl+C`.

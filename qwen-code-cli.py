@@ -4,7 +4,7 @@
 ║  Rich UI · Streaming · Diff · Git · Search · Safety Guard   ║
 ╚══════════════════════════════════════════════════════════════╝
 
-ติดตั้ง dependencies:
+Install dependencies:
     pip install langchain langchain-openai langgraph \
                 rich gitpython prompt_toolkit
 """
@@ -73,7 +73,7 @@ MAX_HISTORY_MSGS = 40
 SESSIONS_DIR     = Path.home() / ".qwen_cli" / "sessions"
 SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
-# คำสั่งอันตรายที่ต้องขอ confirm ก่อนรัน
+# Dangerous commands that require user confirmation before running
 DANGEROUS_PATTERNS = [
     r"\brm\s+-rf?\b", r"\brmdir\b", r"\bdd\b", r"\bmkfs\b",
     r"\bchmod\s+777\b", r"\bsudo\b", r">\s*/dev/",
@@ -102,7 +102,7 @@ def detect_language(file_path: str) -> str:
     return ext_map.get(Path(file_path).suffix.lower(), "text")
 
 def show_diff(old_content: str, new_content: str, filename: str) -> None:
-    """แสดง colorized diff ก่อนเขียนไฟล์"""
+    """Display colorized diff before writing the file"""
     diff = list(difflib.unified_diff(
         old_content.splitlines(keepends=True),
         new_content.splitlines(keepends=True),
@@ -111,7 +111,7 @@ def show_diff(old_content: str, new_content: str, filename: str) -> None:
         lineterm=""
     ))
     if not diff:
-        console.print("[dim_text]  (ไม่มีการเปลี่ยนแปลง)[/dim_text]")
+        console.print("[dim_text]  (No changes)[/dim_text]")
         return
 
     diff_text = Text()
@@ -126,7 +126,7 @@ def show_diff(old_content: str, new_content: str, filename: str) -> None:
             diff_text.append(line + "\n", style="grey50")
 
     if len(diff) > 80:
-        diff_text.append(f"\n... และอีก {len(diff)-80} บรรทัด\n", style="dim_text")
+        diff_text.append(f"\n... and {len(diff)-80} more lines\n", style="dim_text")
 
     console.print(Panel(diff_text, title="[bold]📝 Diff Preview[/bold]",
                         border_style="blue"))
@@ -553,7 +553,7 @@ def create_project_context(content: str) -> str:
         return f"❌ Error: {str(e)}"
 
 
-# รวม tools
+# Combine tools
 tools = [
     execute_bash_command, view_and_read_file, write_or_edit_file,
     patch_file, search_in_files, list_directory_tree,
@@ -585,11 +585,11 @@ class State(TypedDict):
 def llm_node(state: State):
     count = state.get("iteration_count", 0)
     if count >= MAX_ITERATIONS:
-        console.print(f"[danger]⚠ ถึง MAX_ITERATIONS ({MAX_ITERATIONS})[/danger]")
-        return {"messages": [AIMessage(content=f"⚠ หยุดทำงาน ครบ {MAX_ITERATIONS} รอบ")],
+        console.print(f"[danger]⚠ Reached MAX_ITERATIONS ({MAX_ITERATIONS})[/danger]")
+        return {"messages": [AIMessage(content=f"⚠ Stopped: Reached maximum iterations ({MAX_ITERATIONS})")],
                 "iteration_count": count}
 
-    # ── เริ่มระบบ Token Streaming ร่วมกับ Rich Live ──
+    # ── Start Token Streaming with Rich Live ──
     from rich.live import Live
     
     response = None
@@ -602,29 +602,29 @@ def llm_node(state: State):
         else:
             response += chunk
 
-        # เช็กว่าโมเดลเริ่มสั่งรัน Tool หรือยัง (ถ้าเป็น Tool จะไม่แสดงบนหน้าจอแชทปกติ)
+        # Check if model has started calling tools (which won'\''t be shown in chat)
         if chunk.tool_call_chunks:
             is_tool_call = True
 
         if not is_tool_call:
-            # เช็ก fallback กรณีเป็น XML tool call
+            # Check fallback for XML tool call
             content_so_far = response.content
             if content_so_far.startswith("<tool_call") or content_so_far.strip().startswith("<tool_call"):
                 is_tool_call = True
             else:
-                # ถ้าเป็นข้อความธรรมดา ให้เริ่มรันกล่องแสดงผลสด (Live Preview)
+                # For plain text message, start the live preview panel
                 if live is None:
                     from rich.markdown import Markdown
                     panel = Panel(Markdown(""), title="[ai]🤖 Qwen[/ai]", border_style="bright_white", expand=False)
                     live = Live(panel, console=console, refresh_per_second=12)
                     live.start()
                 
-                # อัปเดตข้อความในกล่อง Markdown แบบเรียลไทม์
+                # Update Markdown content in panel in real-time
                 live.update(Panel(Markdown(content_so_far), title="[ai]🤖 Qwen[/ai]", border_style="bright_white", expand=False))
 
     if live:
         live.stop()
-    # ── จบระบบ Token Streaming ──
+    # ── End Token Streaming ──
 
     # Fallback XML parser
     if not response.tool_calls and "<tool_call>" in response.content:
@@ -657,7 +657,7 @@ def tool_node(state: State):
     for tc in state["messages"][-1].tool_calls:
         fn = tools_by_name.get(tc["name"])
         if not fn:
-            result = f"❌ ไม่พบ tool: {tc['name']}"
+            result = f"❌ Tool not found: {tc['name']}"
         else:
             try:
                 result = fn.invoke(tc["args"])

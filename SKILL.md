@@ -5,50 +5,50 @@ description: Local AI Coding Agent with Rich UI, streaming, surgical patching, a
 
 # 🤖 Qwen Code CLI — Agent Capabilities & Skills Documentation
 
-เอกสารนี้รวบรวมทักษะการทำงาน (Skills), คำสั่งลัด (Slash Commands) และเครื่องมือ (Tools) ทั้งหมดของระบบ Qwen Code CLI เพื่อเป็นคู่มือโครงสร้างและสถาปัตยกรรมของ Agent ให้เป็นระบบและเป็นระเบียบเรียบร้อย
+This document summarizes the core capabilities, slash commands, and tool bindings of the Qwen Code CLI system to provide a clean overview of the Agent's architecture and operation guidelines.
 
 ---
 
-## 🛠️ 1. Agent Bindings & Tools (เครื่องมือที่โมเดลใช้งานได้)
+## 🛠️ 1. Agent Bindings & Tools
 
-โมเดล LLM ในระบบสามารถเรียกใช้เครื่องมือในรูปแบบ Function Calling ได้ทั้งหมด 9 เครื่องมือหลัก ดังนี้:
+The LLM Agent in this system can invoke 9 primary tools through function calling:
 
-| เครื่องมือ (Tool Name) | คำอธิบาย (Description) | พารามิเตอร์หลัก (Key Parameters) |
+| Tool Name | Description | Key Parameters |
 |---|---|---|
-| `execute_bash_command` | รันคำสั่ง Terminal แบบ Async Stream | `command` (str) |
-| `view_and_read_file` | อ่านเนื้อหาไฟล์โดยระบุขอบเขตบรรทัดได้ | `file_path`, `start_line`, `end_line` |
-| `write_or_edit_file` | เขียนไฟล์ใหม่หรือเขียนทับ (มีระบบตรวจ Diff) | `file_path`, `content` |
-| `patch_file` | แก้ไขโค้ดเฉพาะจุดแบบปลอดภัย (Surgical Edit) | `file_path`, `old_snippet`, `new_snippet` |
-| `search_in_files` | ค้นหาคีย์เวิร์ดในโปรเจกต์ด้วย Regex/Grep | `pattern`, `directory`, `file_glob` |
-| `list_directory_tree` | แสดงแผนผังโครงสร้างของไฟล์และโฟลเดอร์ | `directory`, `max_depth` |
-| `get_file_outline` | แสดง Outline คลาส เมธอด และฟังก์ชันของไฟล์ | `file_path` |
-| `get_git_info` | ดึงข้อมูลกิ่ง (Branch), สเตตัส และประวัติ Commit | `repo_path` |
-| `create_project_context`| สร้างหรืออัปเดตไฟล์คอนเทกซ์ของโปรเจกต์ | `content` |
+| `execute_bash_command` | Executes terminal commands as an asynchronous output stream | `command` (str) |
+| `view_and_read_file` | Reads file content with precise line-range selection | `file_path`, `start_line`, `end_line` |
+| `write_or_edit_file` | Writes a new file or overwrites an existing one (includes diff review) | `file_path`, `content` |
+| `patch_file` | Edits specific code sections safely (Surgical Edit) | `file_path`, `old_snippet`, `new_snippet` |
+| `search_in_files` | Searches for text/regex patterns in the workspace (grep-like) | `pattern`, `directory`, `file_glob` |
+| `list_directory_tree` | Generates a structural directory tree of the workspace | `directory`, `max_depth` |
+| `get_file_outline` | Displays the structural outline (classes, methods, functions) of a file | `file_path` |
+| `get_git_info` | Retrieves git repository status, branch info, and commit logs | `repo_path` |
+| `create_project_context`| Creates or updates the project context profile | `content` |
 
 ---
 
-## 📖 2. Slash Commands (คำสั่งลัดที่ผู้ใช้พิมพ์ควบคุม)
+## 📖 2. Slash Commands
 
-คำสั่งระบบที่ถูกประมวลผลภายในตัวเครื่อง (Client-side Commands) โดยไม่ต้องเรียกใช้โมเดลเพื่อประหยัดทรัพยากร:
+Client-side commands processed locally inside the terminal without calling the LLM (saving tokens and latency):
 
-*   `/help` : แสดงหน้าคู่มือคำสั่งลัดพิเศษ
-*   `/clear` : เคลียร์ข้อความบนหน้าต่างแชทเพื่อความเป็นระเบียบ
-*   `/reset` : ล้างสถานะ Context/History (จำเป็นมากเมื่อคุยยาวแล้ว LLM เริ่มตอบช้าลง)
-*   `/tools` : แสดงรายการและรายละเอียดเครื่องมือทั้งหมดของบอท
-*   `/tree` : วาดแผนภาพโฟลเดอร์ปัจจุบันแบบเจาะลึก
-*   `/git` : แสดง Git Status และประวัติ Commit ล่าสุด
-*   `/diff` : แสดงความต่างของโค้ดล่าสุดแบบใส่สี (Syntax Colored Diff)
-*   `/commit` : ให้บอทวิเคราะห์การแก้ไขและช่วย Commit งานพร้อมแต่งข้อความแบบมืออาชีพ
-*   `/context` : แสดงภาพรวมโปรเจกต์ในไฟล์ `.qwen-context.md`
-*   `exit` / `quit` : ปิดโปรแกรมและบันทึกประวัติการพิมพ์
+*   `/help` : Displays the guide for all available slash commands
+*   `/clear` : Clears the terminal screen layout
+*   `/reset` : Resets chat history and context (crucial when chat history grows long and LLM becomes slower)
+*   `/tools` : Shows names and descriptions of all tools the agent can use
+*   `/tree` : Draws the folder structure starting from the current directory
+*   `/git` : Displays current Git status and the last 10 commit logs
+*   `/diff` : Displays color-coded syntax diff of changes
+*   `/commit` : Instructs LLM to analyze git diff, write a commit message, and perform the Git commit
+*   `/context` : Shows the current project context saved in `.qwen-context.md`
+*   `exit` / `quit` : Safely terminates the CLI and saves input command history
 
 ---
 
-## ⚙️ 3. Agent System Configuration (การตั้งค่าระบบ)
+## ⚙️ 3. Agent System Configuration
 
-*   **LLM Target**: OpenAI Compatible API (`http://127.0.0.1:8080/v1`)
+*   **LLM Target**: OpenAI-compatible API (`http://127.0.0.1:8080/v1`)
 *   **Model Name**: `qwen2.5-7b-instruct-q4_k_m`
-*   **Safety Guard**: ระบบจะแจ้งเตือนและขอคำยืนยัน (Confirmation Gate) ทุกครั้งหากโมเดลพยายามจะรันคำสั่งอันตราย เช่น `rm -rf`, `sudo`, `chmod 777`
+*   **Safety Guard**: Displays warning and prompts for user confirmation (Confirmation Gate) if the agent attempts to run potentially harmful commands (e.g. `rm -rf`, `sudo`, `chmod 777`).
 *   **Token Optimization**:
-    *   จำกัดรอบการคิดสูงสุดที่ `MAX_ITERATIONS = 20` รอบต่อ 1 คำถาม
-    *   ทำระบบ **Context Trimming & Summary Auto-compress** เมื่อประวัติแชทเกิน `MAX_HISTORY_MSGS = 40` ข้อความ เพื่อคงความเร็วการตอบกลับให้ไม่ดรอป
+    *   Caps execution steps at `MAX_ITERATIONS = 20` per query loop.
+    *   Triggers **Context Trimming & Summary Auto-compress** when chat history exceeds `MAX_HISTORY_MSGS = 40` messages to keep response times high.
