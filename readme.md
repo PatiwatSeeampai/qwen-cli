@@ -1,95 +1,95 @@
 # 🤖 Qwen Code CLI v2.0 — Claude Code Style
 
-> Local AI Coding Agent running 100% locally on your machine with Rich UI and full features matching Claude Code.
+> A local AI Coding Agent running 100% locally on your machine with a Rich UI and features aligned with Claude Code.
 
 ---
 
-## ✨ Features
+## 📐 1. Architecture
 
-| Feature | Description |
-|---|---|
-| **Rich Terminal UI** | Beautiful Syntax highlighting, Panels, Trees, and Tables |
-| **Smart Input** | Multi-session persistent command history + autocomplete powered by `prompt_toolkit` |
-| **Patch Mode** | Surgical block editing (`patch_file`) instead of overwriting entire files |
-| **Git Integration** | Comprehensive Git tools: status, diff, commit, push, pull |
-| **Approval Gate** | Prompts for confirmation before executing dangerous commands (`rm`, `sudo`, `chmod`...) |
-| **Session Save/Load** | Save and resume chat conversations across sessions |
-| **Auto-save** | Automatically saves session states upon exiting the program |
-| **Compact** | Summarizes and clears older history to optimize context window utilization |
-| **Context Trimming** | Automatically trims history prefix to prevent context overflow |
-| **File Tools** | Full set of file tools: list, search, delete, move/rename, read, write, and patch |
-| **Slash Commands** | `/help /save /load /compact /clear /status /tree /cd /history` and more |
+The system operates as a local agentic loop, binding a local OpenAI-compatible inference server to physical workspace tools using LangGraph:
+
+```mermaid
+graph TD
+    subgraph Client [Qwen CLI Client]
+        User[User Prompt / Input] -->|prompt_toolkit CLI| Runner[qwen-code-cli.py]
+        Runner -->|Orchestrates State| Graph[LangGraph State Workflow]
+        Graph -->|Token Stream| RichUI[Rich Live UI Renderer]
+    end
+
+    subgraph LLM Server [Local Brain]
+        Graph -->|OpenAI API Schema| LocalLLM[llama.cpp / LM Studio Server]
+        LocalLLM -->|Tool Calls / Completion| Graph
+    end
+
+    subgraph Workspace [Local Filesystem]
+        Graph -->|Invokes Tools| Tools[Agent Tools]
+        Tools -->|Read/Patch/Write| FileSys[Project Code Files]
+        Tools -->|Git commits/diff/status| Git[Git Repository]
+        Tools -->|Subprocess runs| Shell[Bash Terminal]
+    end
+```
 
 ---
 
-## 🚀 Installation & Running
+## 🔄 2. Workflow
+
+1. **User Input Handling**: The user types text or commands. Slash commands (e.g. `/compact`, `/reset`, `/git`) are evaluated locally immediately to bypass LLM latency.
+2. **LangGraph Loop**: Text queries are dispatched to the LangGraph execution loop:
+   - **LLM Node**: Streams prompt inputs to the local model.
+   - **Stream Capture**: If a plain text reply is streamed, it renders live in a markdown panel. If tool call tokens are emitted, it intercepts the output.
+   - **Tool Execution Node**: Executes corresponding python operations (file changes, grep searches, git commands). Dangerous commands (like `rm` or `sudo`) trigger an visual Confirmation Gate.
+3. **Iteration Cap**: The loop runs up to `MAX_ITERATIONS = 20` times to resolve multi-step operations.
+4. **Context Management**: Older chat logs are trimmed or auto-compressed using a summarization node if they exceed `MAX_HISTORY_MSGS = 40` to save context space.
+
+---
+
+## 🛠️ 3. Tool Techstack
+
+* **Agent Core**: Python 3.8+, LangGraph, LangChain Core, `langchain-openai`.
+* **Terminal Interface**: `prompt_toolkit` (persistent input history, auto-completion, suggestions), `rich` (Markdown rendering, diff colorization, progress spinners).
+* **Workspace Integration**: `gitpython` (native Git API wrapper), standard subprocesses.
+* **Brain Engine (Local Inference)**: `llama.cpp` server or `LM Studio` running GGUF weights (e.g. `qwen2.5-7b-instruct`).
+
+---
+
+## 🗂️ 4. Project Structure
+
+```
+qwen-cli/
+├── qwen-code-cli.py       # Core agent execution runner, tool definitions, & LangGraph workflow
+├── readme.md              # Project documentation
+├── SKILL.md               # Detailed tool bindings and system configuration documentation
+├── doc.txt                # Interactive startup guide
+├── requirement.txt        # python dependencies list
+├── requirements.txt       # python dependencies list (duplicate for compatibility)
+├── scan_for_test.py       # Scanner test runner script
+├── models/                # Local directory for placing downloaded GGUF models
+└── venv/                  # Local python virtual environment
+```
+
+---
+
+## 🚀 5. How to Setup
 
 ### 1. Install Dependencies
+Set up your virtual environment and install the required modules:
 ```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Start Local LLM Server (llama.cpp or LM Studio)
+### 2. Startup your Local LLM Server
+Ensure you have `llama.cpp` or `LM Studio` running and hosting your model on port `8888` or `8080`.
 ```bash
-# Example using llama-server
-llama-server -m qwen2.5-7b-instruct-q4_k_m.gguf --port 8080
+# Example command using llama-server hosting Qwen GGUF:
+llama-server -m models/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf --port 8080 --n_ctx 2048 --verbose False
 ```
 
-### 3. Run CLI
+### 3. Configure and Launch the CLI
+By default, the client points to `http://127.0.0.1:8080/v1`. Start the interface using:
 ```bash
-python qwen_cli.py
+python qwen-code-cli.py
 ```
 
----
-
-## 📖 Slash Commands
-
-```
-/help              Display all commands and help guide
-/save [name]       Save current session state
-/load <name>       Load a saved session
-/sessions          List all saved sessions
-/compact           Summarize and clean up conversation history (save context)
-/clear             Clear all chat history and start fresh
-/status            Display git status
-/tree [path]       Display directory structure as a tree
-/cd <path>         Change the current working directory
-/pwd               Display the current working directory path
-/history           Display full message history
-/exit              Exit the application (auto-saves session)
-```
-
----
-
-## 🛠️ Agent Tools
-
-| Tool | Purpose |
-|---|---|
-| `execute_bash_command` | Execute bash commands (includes confirmation gate for dangerous commands) |
-| `view_and_read_file` | Read files with line-range selection and syntax highlighting |
-| `write_or_edit_file` | Write or overwrite entire file content |
-| `patch_file` | Edit specific parts of a file (surgical edit) |
-| `list_directory` | Display folder structure in tree view |
-| `search_in_files` | Search for regex/text patterns inside codebase |
-| `delete_file` | Delete files/directories (requires confirmation) |
-| `move_or_rename_file` | Move or rename files |
-| `git_operations` | Perform Git operations (status, diff, log, commit, push, pull) |
-
----
-
-## 🗂️ Created Directories & Files
-
-```
-~/.qwen_cli/
-├── sessions/          ← Saved session files (.json)
-└── input_history      ← prompt_toolkit command history
-```
-
----
-
-## 💡 Tips
-
-- Use **`/compact`** when your session runs long and the Agent starts responding slowly or losing focus.
-- Use **`patch_file`** instead of `write_or_edit_file` when editing specific segments of a file. It is much faster and safer.
-- Press **↑/↓** arrows in the prompt to navigate your command history across sessions.
-- **Auto-save** executes automatically whenever you exit with `/exit` or hit `Ctrl+C`.
+*Inside the CLI, type `/help` to see all available slash commands.*
